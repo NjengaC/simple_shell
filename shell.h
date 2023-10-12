@@ -29,6 +29,7 @@ int _strlen(char *s);
 char *_strchr(char *s, char c);
 int _putchar(char c);
 int _atoi(char *s);
+int execute(char **commands);
 char *_strdup(const char *str);
 ssize_t _igetline(char **lineptr, size_t *n, FILE *stream);
 char **_strtok(char *input, const char *delim);
@@ -38,5 +39,5 @@ int _chdir(char **av);
 void free_str(char *str);
 void free_sarray(char **av);
 int whitespace(char *command);
-
+char **tokenize(char *input);
 #endif

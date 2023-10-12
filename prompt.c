@@ -33,8 +33,23 @@ char **_strtok(char *input, const char *delim)
 {
 	char **tokens;
 	char *token;
-	int token_count;
-	
+	int token_count = 0, i = 0;
+	char *saveptr, *copy;
+
+	while (input[i])
+	{
+		if (input[i] == '\n')
+		{
+			input[i] = '\0';
+		}
+		i++;
+	}
+
+	if (input == NULL)
+	{
+		return (NULL);
+	}
+	copy = _strdup(input);
 	tokens = malloc(strlen(input) * sizeof(char *));
 
 	if (tokens == NULL)
@@ -43,22 +58,21 @@ char **_strtok(char *input, const char *delim)
 		exit(1);
 	}
 
-	token = NULL;
-	token_count = 0;
-
-	token = strtok(input, delim);
+	token = strtok_r(copy, delim, &saveptr);
 	while (token != NULL)
 	{
 		tokens[token_count] = _strdup(token);
 		if (tokens[token_count] == NULL)
 		{
 			perror("strdup");
+			free_str(copy);
 			exit(1);
 		}
 		token_count++;
-		token = strtok(NULL, delim);
+		token = strtok_r(NULL, delim, &saveptr);
 	}
 	free_str(token);
+	free_str(copy);
 	tokens[token_count] = NULL;
 	return (tokens);
 }
@@ -133,6 +147,56 @@ return (0);
 
 }
 /**
+ * execute - executes multiple commands
+ * @command: commandline
+ */
+int execute(char **commands)
+{
+	int status, k = 0;
+	char **av = NULL;
+	char *first = NULL;
+	pid_t child_pid;
+
+
+	while (commands[k] != NULL)
+	{
+		printf("%s\n", commands[k]);
+		av = _strtok(commands[k], " ");
+		if ((check_inbuilts(av[0])) == 1)
+		{
+			handle_builtins(av, commands[k]);
+		}
+		else
+		{
+			first = get_exe(av[0]);
+			if (first == NULL)
+				first = strdup(av[0]);
+
+			child_pid = fork();
+			if (child_pid == 0)
+			{
+				if (execve(first, av, environ) == -1)
+				{
+					printf("%s :command not found\n", av[0]);
+				}
+			}
+			else
+			{
+				/*reset(&av, &command, &first, &i);*/
+				wait(&status);
+				if (status != 0)
+				{
+					printf("Fork failed\n");
+					exit (0);
+				}
+			}
+		}
+		k++;
+	}
+	return (0);
+}
+
+/**
  * main - entry point for the command line interpreter, displays a prompt
  * and waits for the user to type a command
  * Return: 0 On success
@@ -144,7 +208,7 @@ int main(void)
 	int status, i;
 	char **av = NULL;
 	char *first = NULL;
-	/*char **commands = NULL;*/
+	char **commands = NULL;
 	ssize_t read;
 	size_t len = 0;
 	pid_t child_pid;
@@ -160,9 +224,16 @@ int main(void)
 			printf("\n");
 			break;
 		}
+		
 		if ((whitespace(command)) == 1)
 		{
 			printf("\n");
+		}
+		if (strchr(command,';') != NULL)
+		{
+			commands = tokenize(command);
+			execute(commands);
+			free_sarray(commands);
 		}
 		else
 		{
@@ -205,10 +276,10 @@ int main(void)
 		}
 		reset(&av, &command, &first, &i);
 	}
-		/*reset(&av, &command, &first, &i);*/
-	free_sarray(av);
+	reset(&av, &command, &first, &i);
+/*	free_sarray(av);
 	free_str(command);
-	free_str(first);
+	free_str(first);*/
 
 	return (0);
 }
