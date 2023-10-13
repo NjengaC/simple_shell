@@ -179,9 +179,9 @@ int execute(char **commands)
 			}
 			else
 			{
-				/*reset(&av, &command, &first, &i);*/
 				wait(&status);
-				/*if (status != 0)*/
+				if (status != 0)
+					break;
 			}
 		}
 		reset(&av, &commands[k], &first);
@@ -229,7 +229,7 @@ int main(void)
 		}
 		else if (_strchr(command,'&') == 1)
 		{
-			commands = tokenize(command);
+			commands = tokenize_and(command);
 			execute_and(commands);
 		}
 		else if ((_strchr(command,'|') == 1))

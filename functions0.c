@@ -103,7 +103,6 @@ int execute_and(char **commands)
 					wait(&status);
 					if (WIFEXITED(status) && WEXITSTATUS(status) != 0)
 					{
-						printf("Command failed: %s\n", av[0]);
 						break;
 					}
 					else
