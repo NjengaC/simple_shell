@@ -1,13 +1,48 @@
 #include "shell.h"
-void resset(char token[10])
-{
-	int i = 0;
 
-	while (token[i])
+char **tokenize_separator(char *input)
+{
+	char **tokens;
+	int i = 0, token_count = 0;
+	char *token;
+
+	while (input[i])
 	{
-		token[i] = 0;
+		if (input[i] == '\n')
+		{
+			input[i] = '\0';
+		}
 		i++;
 	}
+
+	if (input == NULL)
+	{
+		return (NULL);
+	}
+
+	tokens = malloc(strlen(input) * sizeof(char *));
+
+	if (tokens == NULL)
+	{
+		perror("malloc");
+		exit(1);
+	}
+
+	token = strtok(input, ";");
+	while (token != NULL)
+	{
+		tokens[token_count] = _strdup(token);
+		if (tokens[token_count] == NULL)
+		{
+			perror("strdup");
+			exit(1);
+		}
+		token_count++;
+		token = strtok(NULL, ";");
+	}
+	free_str(token);
+	tokens[token_count] = NULL;
+	return (tokens);
 }
 /**
  * free_sarray - frees an array of strings
@@ -24,7 +59,10 @@ void free_sarray(char **av)
 
 		while (av[i] != NULL)
 		{
-			free(av[i]);
+			if (av[i] != NULL)
+			{
+				free(av[i]);
+			}
 			i++;
 		}
 		free(av);
@@ -68,6 +106,11 @@ int whitespace(char *command)
 	return (1);
 }
 
+/**
+ * tokenize - tokenizes input with logical operators and command separator
+ * @input: input
+ * Return: array of tokens
+ */
 
 char **tokenize(char *input)
 {

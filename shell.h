@@ -42,6 +42,7 @@ void free_sarray(char **av);
 int whitespace(char *command);
 char **tokenize(char *input);
 char **tokenize_and(char *input);
+char **tokenize_separator(char *input);
 int check_inbuilts(char *input);
 int handle_operators(char **commands, char *copy);
 int execute_or(char **commands);

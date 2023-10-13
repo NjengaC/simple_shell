@@ -93,6 +93,7 @@ int execute_or(char **commands)
 				if (execve(first, av, environ) == -1)
 				{
 					printf("%s: command not found\n", av[0]);
+					/*reset(&av, &commands[i], &first);*/
 				}
 			}
 			else
@@ -102,7 +103,7 @@ int execute_or(char **commands)
 				{
 					success_status = 1;
 					reset(&av, &commands[i], &first);
-					free_sarray(commands);
+					/*free_sarray(commands);*/
 					break;
 				}
 			}
@@ -110,6 +111,16 @@ int execute_or(char **commands)
 		reset(&av, &commands[i], &first);
 		i++;
 
+	}
+	i++;
+	while (commands[i] != NULL)
+	{
+		free_str(commands[i]);
+		i++;
+	}
+	if (commands != NULL)
+	{
+		free_sarray(commands);
 	}
 	return (success_status);
 }

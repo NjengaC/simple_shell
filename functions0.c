@@ -103,6 +103,7 @@ int execute_and(char **commands)
 					wait(&status);
 					if (WIFEXITED(status) && WEXITSTATUS(status) != 0)
 					{
+						reset(&av, &commands[i], &first);
 						break;
 					}
 					else
@@ -118,6 +119,20 @@ int execute_and(char **commands)
 		{
 			break;
 		}
+	}
+	i++;
+	while (commands[i] != NULL)
+	{
+		if (commands[i] != NULL)
+		{
+			free_str(commands[i]);
+		}
+		i++;
+	}
+
+	if (commands != NULL)
+	{
+		free_sarray(commands);
 	}
 
 	return (0);

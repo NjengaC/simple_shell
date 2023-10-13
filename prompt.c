@@ -175,18 +175,19 @@ int execute(char **commands)
 				if (execve(first, av, environ) == -1)
 				{
 					printf("%s :command not found\n", av[0]);
+					reset(&av, &commands[k], &first);
 				}
 			}
 			else
 			{
 				wait(&status);
-				if (status != 0)
-					break;
+				reset(&av, &commands[k], &first);
 			}
 		}
 		reset(&av, &commands[k], &first);
 		k++;
 	}
+	free_sarray(commands);
 	return (0);
 }
 
@@ -224,7 +225,7 @@ int main(void)
 		}
 		if (_strchr(command,';') == 1)
 		{
-			commands = tokenize(command);
+			commands = tokenize_separator(command);
 			execute(commands);
 		}
 		else if (_strchr(command,'&') == 1)
