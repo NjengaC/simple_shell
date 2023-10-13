@@ -123,7 +123,7 @@ int _unsetenv(const char *name)
 * @av: array of stringscommandline argument
 * Return: (0)
 */
-int  handle_builtins(char **av, char *command)
+int handle_builtins(char **av, char *command)
 {
 	if (_strcmp(av[0], "exit") == 0)
 	{

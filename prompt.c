@@ -8,7 +8,7 @@
  *
  * Return: 0
  */
-int reset(char ***argv, char **first, char **command, int *count)
+int reset(char ***argv, char **first, char **command)
 
 {
 	free_sarray(*argv);
@@ -19,7 +19,6 @@ int reset(char ***argv, char **first, char **command, int *count)
 	*command = NULL;
 	*first = NULL;
 /*	*full_path = NULL;*/
-	*count = 0;
 
 	return (0);
 }
@@ -157,10 +156,8 @@ int execute(char **commands)
 	char *first = NULL;
 	pid_t child_pid;
 
-
 	while (commands[k] != NULL)
 	{
-		printf("%s\n", commands[k]);
 		av = _strtok(commands[k], " ");
 		if ((check_inbuilts(av[0])) == 1)
 		{
@@ -184,13 +181,10 @@ int execute(char **commands)
 			{
 				/*reset(&av, &command, &first, &i);*/
 				wait(&status);
-				if (status != 0)
-				{
-					printf("Fork failed\n");
-					exit (0);
-				}
+				/*if (status != 0)*/
 			}
 		}
+		reset(&av, &commands[k], &first);
 		k++;
 	}
 	return (0);
@@ -205,7 +199,7 @@ int main(void);
 int main(void)
 {
 	char *command = NULL;
-	int status, i;
+	int status;
 	char **av = NULL;
 	char *first = NULL;
 	char **commands = NULL;
@@ -217,7 +211,6 @@ int main(void)
 	{
 		printf("$ ");
 		read = getline(&command, &len, stdin);
-
 		if (feof(stdin) || (read == -1))
 		{
 
@@ -229,11 +222,20 @@ int main(void)
 		{
 			printf("\n");
 		}
-		if (strchr(command,';') != NULL)
+		if (_strchr(command,';') == 1)
 		{
 			commands = tokenize(command);
 			execute(commands);
-			free_sarray(commands);
+		}
+		else if (_strchr(command,'&') == 1)
+		{
+			commands = tokenize(command);
+			execute_and(commands);
+		}
+		else if ((_strchr(command,'|') == 1))
+		{
+			commands = tokenize(command);
+			execute_or(commands);
 		}
 		else
 		{
@@ -256,27 +258,26 @@ int main(void)
 							if (execve(first, av, environ) == -1)
 							{
 								printf("%s :command not found\n", av[0]);
-								reset(&av, &command, &first, &i);
+								reset(&av, &command, &first);
 								exit(0);
 							}
 						}
 						else
 						{
-							reset(&av, &command, &first, &i);
+							reset(&av, &command, &first);
 							wait(&status);
 							if (status != 0)
 							{
-								printf("Fork failed\n");
-								exit (0);
+								printf("command failed\n");
 							}
 						}
 					}
 				}
-			/*reset(&av, &command, &first, &i);*/
+			/*reset(&av, &command, &first);*/
 		}
-		reset(&av, &command, &first, &i);
+		reset(&av, &command, &first);
 	}
-	reset(&av, &command, &first, &i);
+	reset(&av, &command, &first);
 /*	free_sarray(av);
 	free_str(command);
 	free_str(first);*/

@@ -90,14 +90,14 @@ if (input == NULL)
 }
 
 tokens = malloc(strlen(input) * sizeof(char *));
-/*
+
 if (tokens == NULL)
 {
 	perror("malloc");
 	exit(1);
 }
-*/
-token = strtok(input, ";");
+
+token = strtok(input, "||");
 while (token != NULL)
 {
 	tokens[token_count] = _strdup(token);
@@ -107,7 +107,7 @@ while (token != NULL)
 		exit(1);
 	}
 	token_count++;
-	token = strtok(NULL, ";");
+	token = strtok(NULL, "||");
 }
 free_str(token);
 tokens[token_count] = NULL;

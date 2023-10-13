@@ -7,7 +7,7 @@
  * Return: 0 on (Success) else return the character
  */
 
-char *_strchr(char *s, char c)
+int _strchr(char *s, char c)
 
 {
 	int i;
@@ -15,7 +15,7 @@ char *_strchr(char *s, char c)
 	for (i = 0; s[i] != '\0'; i++)
 	{
 		if (s[i] == c)
-			return (&s[i]);
+			return (1);
 	}
 	return (0);
 }
@@ -58,4 +58,68 @@ char *_strdup(const char *str)
 		strcpy(duplicate, str);
 	}
 	return (duplicate);
+}
+
+
+int execute_and(char **commands)
+{
+	int status;
+	int i = 0, success_status = 0, exec_failed;
+	char **av = NULL;
+	char *first = NULL;
+	pid_t child_pid;
+
+	while (commands[i] != NULL)
+	{
+		av = _strtok(commands[i], " ");
+		if (av[0])
+		{
+			if (check_inbuilts(av[0]) == 1)
+			{
+				handle_builtins(av, commands[i]);
+			}
+			else
+			{
+				first = get_exe(av[0]);
+				if (first == NULL)
+				{
+					first = strdup(av[0]);
+				}
+
+				exec_failed = 0;
+
+				child_pid = fork();
+				if (child_pid == 0)
+				{
+					if (execve(first, av, environ) == -1)
+					{
+						exec_failed = 1;
+						printf("%s: command not found\n", av[0]);
+					}
+					exit(exec_failed);
+				}
+				else
+				{
+					wait(&status);
+					if (WIFEXITED(status) && WEXITSTATUS(status) != 0)
+					{
+						printf("Command failed: %s\n", av[0]);
+						break;
+					}
+					else
+					{
+						success_status = 1;
+					}
+				}
+			}
+			reset(&av, &commands[i], &first);
+		}
+		i++;
+		if (!success_status)
+		{
+			break;
+		}
+	}
+
+	return (0);
 }
