@@ -16,8 +16,16 @@
 
 #define BUFFER_SIZE 1024
 #define SHELL_PATH "/bin:/usr/bin"
+#define MAX_ALIASES 50
 
 extern char **environ;
+
+struct Alias {
+	char *name;
+	char *value;
+};
+struct Alias aliases[MAX_ALIASES];
+extern int num_aliases;
 
 int reset(char ***argv, char **first, char **command);
 char *get_exe(char *command);
@@ -46,4 +54,11 @@ char **tokenize_separator(char *input);
 int check_inbuilts(char *input);
 int handle_operators(char **commands, char *copy);
 int execute_or(char **commands);
+int handle_alias(char **av);
+int add_alias(const char *name, const char *value);
+int remove_alias(const char *name);
+void list_aliases();
+const char *lookup_alias(const char *name);
+void cleanup_shell();
+
 #endif

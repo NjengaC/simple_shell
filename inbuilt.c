@@ -162,5 +162,21 @@ int handle_builtins(char **av, char *command)
 	{
 		chdir(av[1]);
 	}
+	else if (_strcmp(av[0], "alias") == 0)
+	{
+		handle_alias(av);
+	}
 	return (0);
+}
+
+
+void cleanup_shell()
+{
+	int i;
+
+	for (i = 0; i < num_aliases; i++)
+	{
+		free(aliases[i].name);
+		free(aliases[i].value);
+	}
 }

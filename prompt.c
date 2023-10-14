@@ -1,4 +1,5 @@
 #include "shell.h"
+int num_aliases = 0;
 /**
  * reset - resets variables and returns wait status
  * @argv: commandline args and their flags
@@ -142,7 +143,11 @@ int check_inbuilts(char *input)
 	{
 		return (1);
 	}
-return (0);
+	else if (_strcmp(input, "alias") == 0)
+	{
+		return (1);
+	}
+	return (0);
 
 }
 /**
@@ -203,6 +208,7 @@ int main(void)
 	int status;
 	char **av = NULL;
 	char *first = NULL;
+/*	const char *alias_val = NULL;*/
 	char **commands = NULL;
 	ssize_t read;
 	size_t len = 0;
@@ -223,6 +229,7 @@ int main(void)
 		{
 			printf("\n");
 		}
+
 		if (_strchr(command,';') == 1)
 		{
 			commands = tokenize_separator(command);
@@ -240,42 +247,45 @@ int main(void)
 		}
 		else
 		{
-				av = _strtok(command, " \t\n");
-				if (av[0])
-				{
-					if ((check_inbuilts(av[0])) == 1)
-					{
-						handle_builtins(av, command);
-					}
-					else
-					{
-						first = get_exe(av[0]);
-						if (first == NULL)
-							first = strdup(av[0]);
+			av = _strtok(command, " \t\n");
+			/*if (lookup_alias(av[0]) != NULL)
+			{
+				alias_val = lookup_alias(av[0]);
+				free(av[0]);
+				av[0] = strdup(alias_val);
+			}*/
+			if ((check_inbuilts(av[0])) == 1)
+			{
+				handle_builtins(av, command);
+			}
+			else
+			{
+				first = get_exe(av[0]);
+				if (first == NULL)
+					first = strdup(av[0]);
 
-						child_pid = fork();
-						if (child_pid == 0)
-						{
-							if (execve(first, av, environ) == -1)
-							{
-								printf("%s :command not found\n", av[0]);
-								reset(&av, &command, &first);
-								exit(0);
-							}
-						}
-						else
-						{
-							reset(&av, &command, &first);
-							wait(&status);
-							if (status != 0)
-							{
-								printf("command failed\n");
-							}
-						}
+				child_pid = fork();
+				if (child_pid == 0)
+				{
+					if (execve(first, av, environ) == -1)
+					{
+						printf("%s :command not found\n", av[0]);
+						reset(&av, &command, &first);
+						exit(0);
 					}
 				}
-			/*reset(&av, &command, &first);*/
+				else
+				{
+					reset(&av, &command, &first);
+					wait(&status);
+					if (status != 0)
+					{
+						printf("command failed\n");
+					}
+				}
+			}
 		}
+		/*reset(&av, &command, &first);*/
 		reset(&av, &command, &first);
 	}
 	reset(&av, &command, &first);
