@@ -207,7 +207,7 @@ int main(void)
 	char *command = NULL;
 	int status;
 	char **av = NULL;
-	char *first = NULL;
+	char *first = NULL, *copy = NULL;
 /*	const char *alias_val = NULL;*/
 	char **commands = NULL;
 	ssize_t read;
@@ -230,6 +230,13 @@ int main(void)
 			printf("\n");
 		}
 
+		if (_strchr(command,'$') == 1)
+		{
+			copy = strdup(command);
+			free_str(command);
+			command = handle_replace(copy);
+			free(copy);
+		}
 		if (_strchr(command,';') == 1)
 		{
 			commands = tokenize_separator(command);

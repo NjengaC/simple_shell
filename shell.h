@@ -13,6 +13,7 @@
 #include <stdbool.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <ctype.h>
 
 #define BUFFER_SIZE 1024
 #define SHELL_PATH "/bin:/usr/bin"
@@ -60,5 +61,6 @@ int remove_alias(const char *name);
 void list_aliases();
 const char *lookup_alias(const char *name);
 void cleanup_shell();
-
+char *handle_replace(char *command);
+char *itoa(int num);
 #endif
