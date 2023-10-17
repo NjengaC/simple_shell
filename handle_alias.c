@@ -1,5 +1,11 @@
 #include "shell.h"
-int handle_alias (char **av)
+/**
+ * handle_alias - handles the alias command
+ * @av: array of strings
+ * Return: 0 on success
+ */
+
+int handle_alias(char **av)
 {
 	if (av[1])
 	{
@@ -26,12 +32,18 @@ int handle_alias (char **av)
 	}
 	return (0);
 }
+/**
+ * add_alias- adds an alias
+ * @name: name of the alias
+ * @value: value to add
+ * Return: 0 on success
+ */
 
 int add_alias(const char *name, const char *value)
 {
 	if (num_aliases >= MAX_ALIASES)
 	{
-		return -1;
+		return (-1);
 	}
 
 	aliases[num_aliases].name = strdup(name);
@@ -40,6 +52,11 @@ int add_alias(const char *name, const char *value)
 	num_aliases++;
 	return (0);
 }
+/**
+ * remove_alias - removes an alias
+ * @name: name of the alias
+ * Return: 0 0n success
+ */
 
 int remove_alias(const char *name)
 {
@@ -57,13 +74,17 @@ int remove_alias(const char *name)
 			{
 				aliases[j] = aliases[j + 1];
 			}
-			return 0;
+			return (0);
 		}
 	}
-	return -1;
+	return (-1);
 }
+/**
+ * list_aliases - lists all aliases
+ * Return: nothing
+ */
 
-void list_aliases()
+void list_aliases(void)
 {
 	int i;
 
@@ -72,6 +93,11 @@ void list_aliases()
 		printf("alias %s='%s'\n", aliases[i].name, aliases[i].value);
 	}
 }
+/**
+ * *lookup_alias - checks alias presence
+ * @name: name of the alias
+ * Return: the name
+ */
 
 const char *lookup_alias(const char *name)
 {
@@ -81,8 +107,8 @@ const char *lookup_alias(const char *name)
 	{
 		if (strcmp(aliases[i].name, name) == 0)
 		{
-			return aliases[i].value;
+			return (aliases[i].value);
 		}
 	}
-	return NULL;
+	return (NULL);
 }

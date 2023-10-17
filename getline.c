@@ -1,4 +1,9 @@
 #include "shell.h"
+/**
+ * **tokenize_separator - tokenizes with delimiter as command separator
+ * @input: command line
+ * Return: the tokens in an array
+ */
 
 char **tokenize_separator(char *input)
 {
@@ -21,7 +26,6 @@ char **tokenize_separator(char *input)
 	}
 
 	tokens = malloc(strlen(input) * sizeof(char *));
-
 	if (tokens == NULL)
 	{
 		perror("malloc");
@@ -51,10 +55,11 @@ char **tokenize_separator(char *input)
  */
 void free_sarray(char **av)
 {
+	int i;
+
 	if (av != NULL)
 	{
-		int i = 0;
-
+		i = 0;
 		/*printf("not null. freeing\n");*/
 
 		while (av[i] != NULL)
@@ -67,7 +72,6 @@ void free_sarray(char **av)
 		}
 		free(av);
 	}
-	return;
 }
 
 /**
@@ -79,21 +83,20 @@ void free_str(char *str)
 {
 	if (str != NULL)
 	{
-	/*	printf("%s is not null, freeing\n", str);*/
-		free(str);;
+		free(str);
 	}
-	return;
 }
 /**
  * whitespace - checks for white spaces
  * @command: command input
- * Return 0 is command consist of whitespaces
+ * Return: 0 is command consist of whitespaces
  */
 int whitespace(char *command)
 {
 	int i;
 	int count = 0;
 	int len;
+
 
 	len = strlen(command);
 	for (i = 0; i < len; i++)
@@ -118,41 +121,40 @@ char **tokenize(char *input)
 	int i = 0, token_count = 0;
 	char *token;
 
-while (input[i])
-{
-	if (input[i] == '\n')
+	while (input[i])
 	{
-		input[i] = '\0';
+		if (input[i] == '\n')
+		{
+			input[i] = '\0';
+		}
+		i++;
 	}
-	i++;
-}
-
-if (input == NULL)
-{
-	return (NULL);
-}
-
-tokens = malloc(strlen(input) * sizeof(char *));
-
-if (tokens == NULL)
-{
-	perror("malloc");
-	exit(1);
-}
-
-token = strtok(input, "||");
-while (token != NULL)
-{
-	tokens[token_count] = _strdup(token);
-	if (tokens[token_count] == NULL)
+	if (input == NULL)
 	{
-		perror("strdup");
+		return (NULL);
+	}
+
+	tokens = malloc(strlen(input) * sizeof(char *));
+
+	if (tokens == NULL)
+	{
+		perror("malloc");
 		exit(1);
 	}
-	token_count++;
-	token = strtok(NULL, "||");
-}
-free_str(token);
-tokens[token_count] = NULL;
-return (tokens);
+
+	token = strtok(input, "||");
+	while (token != NULL)
+	{
+		tokens[token_count] = _strdup(token);
+		if (tokens[token_count] == NULL)
+		{
+			perror("strdup");
+			exit(1);
+		}
+		token_count++;
+		token = strtok(NULL, "||");
+	}
+	free_str(token);
+	tokens[token_count] = NULL;
+	return (tokens);
 }

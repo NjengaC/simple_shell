@@ -60,7 +60,12 @@ char *_strdup(const char *str)
 	return (duplicate);
 }
 
-
+/**
+ * execute_and - executes command with logical &
+ * @commands: commands
+ * Return: 0 on succes
+ */
+int execute_and(char **commands);
 int execute_and(char **commands)
 {
 	int status;

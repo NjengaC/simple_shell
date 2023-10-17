@@ -20,8 +20,16 @@
 #define MAX_ALIASES 50
 
 extern char **environ;
+/**
+ * struct Alias - structure of aliases
+ * @name: name member
+ * @value: value member
+ *
+ * Description: stores the name and value of aliases
+ */
 
-struct Alias {
+struct Alias
+{
 	char *name;
 	char *value;
 };
@@ -58,9 +66,11 @@ int execute_or(char **commands);
 int handle_alias(char **av);
 int add_alias(const char *name, const char *value);
 int remove_alias(const char *name);
-void list_aliases();
+void list_aliases(void);
 const char *lookup_alias(const char *name);
-void cleanup_shell();
+void cleanup_shell(void);
 char *handle_replace(char *command);
 char *itoa(int num);
+char *tokenize_hash(char *input);
+int execute_hash(char *command);
 #endif

@@ -4,7 +4,7 @@
  * @command: commandline as typed
  * Return: the replacement value
  */
-
+char *handle_replace(char *command);
 char *handle_replace(char *command)
 {
 	char *dollar_pos;
@@ -20,6 +20,7 @@ char *handle_replace(char *command)
 	size_t before, after;
 
 	remaining = strdup(command);
+
 	while ((dollar_pos = strchr(remaining, '$')) != NULL)
 	{
 		if (*(dollar_pos + 1) == '$')
@@ -42,10 +43,10 @@ char *handle_replace(char *command)
 			{
 				exit_s = WEXITSTATUS(exit_s);
 			}
-			
+
 			exit_status_str = itoa(exit_s);
 			before = dollar_pos - remaining;
-			after = strlen(dollar_pos + 2); 
+			after = strlen(dollar_pos + 2);
 
 			new_str = (char *)malloc(before + strlen(exit_status_str) + after + 1);
 			strncpy(new_str, remaining, before);
@@ -87,10 +88,15 @@ char *handle_replace(char *command)
 		}
 		}
 	}
-	return(remaining);
+	return (remaining);
 }
 
 
+/**
+ * itoa - converts number to string
+ * @num: number
+ * Return: the string
+ */
 
 char *itoa(int num)
 {
@@ -120,9 +126,92 @@ char *itoa(int num)
 			num /= 10;
 		}
 		str[numDigits] = '\0';
-	}else
+	}
+	else
 	{
 		printf("Memory allocation failed in intToString\n");
 	}
 	return (str);
+}
+/**
+ * *tokenize_hash - tokenises upto where hash is
+ * @input: the command containng hash
+ * Return: the command upto hash
+ */
+
+char *tokenize_hash(char *input)
+{
+int i = 0, c = 0;
+char *token;
+
+	while (input[i])
+	{
+		if (input[i] == '\n')
+		{
+			input[i] = '\0';
+		}
+		i++;
+	}
+
+	if (input[c] == '\0')
+	{
+		return (input);
+	}
+
+	while (input[c] != '#' && input[c] != '\0')
+	{
+		c++;
+	}
+
+	token = (char *)malloc(c + 1);
+
+	strncpy(token, input, c);
+	token[c] = '\0';
+
+	return (token);
+}
+/**
+ * execute_hash - executes commands that were returned just before hash
+ * @command: the command without hash
+ * Return: 0 on success
+ */
+
+int execute_hash(char *command)
+{
+	int status;
+	char **av = NULL;
+	char *first = NULL;
+	pid_t child_pid;
+
+	while (command != NULL)
+	{
+		av = _strtok(command, " ");
+		if ((check_inbuilts(av[0])) == 1)
+		{
+			handle_builtins(av, command);
+		}
+		else
+		{
+			first = get_exe(av[0]);
+			if (first == NULL)
+				first = strdup(av[0]);
+
+			child_pid = fork();
+			if (child_pid == 0)
+			{
+				if (execve(first, av, environ) == -1)
+				{
+					printf("%s :command not found\n", av[0]);
+					reset(&av, &command, &first);
+				}
+			}
+			else
+			{
+				wait(&status);
+				reset(&av, &command, &first);
+			}
+		}
+		reset(&av, &command, &first);
+	}
+	return (0);
 }

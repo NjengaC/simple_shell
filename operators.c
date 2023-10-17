@@ -1,4 +1,10 @@
 #include "shell.h"
+/**
+ * **tokenize_and - tokenizes commandline with && logical operator
+ * @input: command
+ * Return: array of characters
+ */
+
 char **tokenize_and(char *input)
 {
 	char **tokens;
@@ -13,12 +19,10 @@ char **tokenize_and(char *input)
 		}
 		i++;
 	}
-
 	if (input == NULL)
 	{
 		return (NULL);
 	}
-
 	tokens = malloc(strlen(input) * sizeof(char *));
 
 	if (tokens == NULL)
@@ -26,7 +30,6 @@ char **tokenize_and(char *input)
 		perror("malloc");
 		exit(1);
 	}
-
 	token = strtok(input, "&&");
 	while (token != NULL)
 	{
@@ -43,6 +46,12 @@ char **tokenize_and(char *input)
 	tokens[token_count] = NULL;
 	return (tokens);
 }
+/**
+ * handle_operators - handles command with logical operator
+ * @commands: commands array
+ * @copy: command line as written on terminal
+ * Return: 0 on success
+ */
 
 int handle_operators(char **commands, char *copy)
 {
@@ -63,8 +72,12 @@ int handle_operators(char **commands, char *copy)
 	}
 	return (0);
 }
-
-
+/**
+ * execute_or - executes command with || logical operator
+ * @commands: commands array
+ * Return: 0 0n success
+ */
+int execute_or(char **commands);
 int execute_or(char **commands)
 {
 	int status;
@@ -93,7 +106,6 @@ int execute_or(char **commands)
 				if (execve(first, av, environ) == -1)
 				{
 					printf("%s: command not found\n", av[0]);
-					/*reset(&av, &commands[i], &first);*/
 				}
 			}
 			else
@@ -103,7 +115,6 @@ int execute_or(char **commands)
 				{
 					success_status = 1;
 					reset(&av, &commands[i], &first);
-					/*free_sarray(commands);*/
 					break;
 				}
 			}

@@ -1,11 +1,9 @@
 #include "shell.h"
-int num_aliases = 0;
 /**
  * reset - resets variables and returns wait status
  * @argv: commandline args and their flags
- * @full_path - full path
+ * @first: full path
  * @command: specific commands as taken by getline
- * @count: track to the arguments
  *
  * Return: 0
  */
@@ -26,15 +24,15 @@ int reset(char ***argv, char **first, char **command)
 /**
  * _strtok - breaks string into an array of null-terminated strings(tokena)
  * @input: a string (command arguments)
+ * @delim: delimiter
  * Return: an array on null-terminated strings
  */
 
 char **_strtok(char *input, const char *delim)
 {
 	char **tokens;
-	char *token;
 	int token_count = 0, i = 0;
-	char *saveptr, *copy;
+	char *saveptr, *copy, *token;
 
 	while (input[i])
 	{
@@ -44,11 +42,9 @@ char **_strtok(char *input, const char *delim)
 		}
 		i++;
 	}
-
 	if (input == NULL)
-	{
 		return (NULL);
-	}
+
 	copy = _strdup(input);
 	tokens = malloc(strlen(input) * sizeof(char *));
 
@@ -57,7 +53,6 @@ char **_strtok(char *input, const char *delim)
 		perror("malloc");
 		exit(1);
 	}
-
 	token = strtok_r(copy, delim, &saveptr);
 	while (token != NULL)
 	{
@@ -95,9 +90,7 @@ char *get_exe(char *command)
 			return (full_path);
 		}
 		else
-		{
 			return (NULL);
-		}
 	}
 	else
 	{
@@ -113,8 +106,6 @@ char *get_exe(char *command)
 			strcpy(full_path, token);
 			strcat(full_path, "/");
 			strncat(full_path, command, strlen(command) + 1);
-	/*		full_path[strlen(full_path)] = '\0';*/
-
 			if (access(full_path, X_OK) == 0)
 			{
 				return (full_path);
@@ -152,7 +143,8 @@ int check_inbuilts(char *input)
 }
 /**
  * execute - executes multiple commands
- * @command: commandline
+ * @commands: commandline
+ * Return: 0 on success
  */
 int execute(char **commands)
 {
@@ -207,7 +199,7 @@ int main(void)
 	char *command = NULL;
 	int status;
 	char **av = NULL;
-	char *first = NULL, *copy = NULL;
+	char *first = NULL, *copy = NULL, *copy2 = NULL;
 /*	const char *alias_val = NULL;*/
 	char **commands = NULL;
 	ssize_t read;
@@ -224,30 +216,37 @@ int main(void)
 			printf("\n");
 			break;
 		}
-		
+		if (_strchr(command, '$') == 1)
+		{
+			copy2 = handle_replace(command);
+			free_str(command);
+			command = strdup(copy2);
+			free(copy2);
+		}
 		if ((whitespace(command)) == 1)
 		{
 			printf("\n");
 		}
-
-		if (_strchr(command,'$') == 1)
+		if (_strchr(command, '#') == 1)
 		{
-			copy = strdup(command);
+			copy = tokenize_hash(command);
 			free_str(command);
-			command = handle_replace(copy);
+			command = strdup(copy);
+			/*execute_hash(copy);*/
+
 			free(copy);
 		}
-		if (_strchr(command,';') == 1)
+		if (_strchr(command, ';') == 1)
 		{
 			commands = tokenize_separator(command);
 			execute(commands);
 		}
-		else if (_strchr(command,'&') == 1)
+		else if (_strchr(command, '&') == 1)
 		{
 			commands = tokenize_and(command);
 			execute_and(commands);
 		}
-		else if ((_strchr(command,'|') == 1))
+		else if ((_strchr(command, '|') == 1))
 		{
 			commands = tokenize(command);
 			execute_or(commands);
@@ -255,12 +254,9 @@ int main(void)
 		else
 		{
 			av = _strtok(command, " \t\n");
-			/*if (lookup_alias(av[0]) != NULL)
+
+			if (av[0])
 			{
-				alias_val = lookup_alias(av[0]);
-				free(av[0]);
-				av[0] = strdup(alias_val);
-			}*/
 			if ((check_inbuilts(av[0])) == 1)
 			{
 				handle_builtins(av, command);
@@ -268,17 +264,16 @@ int main(void)
 			else
 			{
 				first = get_exe(av[0]);
-				if (first == NULL)
-					first = strdup(av[0]);
+				if (first != NULL)
+					child_pid = fork();
 
-				child_pid = fork();
+				/*child_pid = fork();*/
 				if (child_pid == 0)
 				{
 					if (execve(first, av, environ) == -1)
 					{
 						printf("%s :command not found\n", av[0]);
 						reset(&av, &command, &first);
-						exit(0);
 					}
 				}
 				else
@@ -291,14 +286,11 @@ int main(void)
 					}
 				}
 			}
+			}
 		}
 		/*reset(&av, &command, &first);*/
 		reset(&av, &command, &first);
 	}
 	reset(&av, &command, &first);
-/*	free_sarray(av);
-	free_str(command);
-	free_str(first);*/
-
 	return (0);
 }

@@ -121,6 +121,7 @@ int _unsetenv(const char *name)
 /**
 * handle_builtins - handles the exit and env inbuilts
 * @av: array of stringscommandline argument
+* @command: commnad
 * Return: (0)
 */
 int handle_builtins(char **av, char *command)
@@ -133,7 +134,7 @@ int handle_builtins(char **av, char *command)
 
 			status = atoi(av[1]);
 			free_str(command);
-			free_sarray(av);	
+			free_sarray(av);
 			exit(status);
 		}
 		else
@@ -169,8 +170,11 @@ int handle_builtins(char **av, char *command)
 	return (0);
 }
 
-
-void cleanup_shell()
+/**
+ * cleanup_shell - frees aliases
+ * Return: nothing
+ */
+void cleanup_shell(void)
 {
 	int i;
 

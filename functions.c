@@ -16,7 +16,6 @@ int _atoi(char *s)
 	len = 0;
 	f = 0;
 	digit = 0;
-
 	while (s[len] != '\0')
 	{
 		len++;
@@ -130,7 +129,6 @@ char *c_strtok(char *strn, const char *delimiter)
 
 	first_token = last_token;
 	end_token = NULL;
-
 	while (*last_token != '\0')
 	{
 		bool isdelim = false;
