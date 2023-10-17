@@ -1,27 +1,4 @@
 #include "shell.h"
-/**
- *exit_command - exits shell
- *@shell: the main struct
- *Return: nothing
- */
-
-
-void exit_command(SHELL *shell)
-{
-	int exit_status;
-
-	if (shell->toks[1] != NULL)
-	{
-		exit_status = Atoi(shell->toks[1]);
-		shell->status = exit_status;
-		exit(shell->status);
-	}
-	else
-	{
-		shell->status = 0;
-		exit(shell->status);
-	}
-}
 
 /**
  *change_dir_command - changes directories

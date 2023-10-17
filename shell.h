@@ -3,7 +3,6 @@
 
 extern char **environ;
 
-/*FUNCTIONS HEADERS IN USE*/
 
 #include <stdbool.h>
 #include <stdio.h>
@@ -22,71 +21,61 @@ extern char **environ;
 #include <limits.h>
 
 
-			/*STRUCTS*/
-
-
-/*holds essential variables for programs runtime*/
 
 /**
- *  * struct SHELL - This struct represents the shell environment and stores info
- *   * on the shell's state.
- *    * @av: An array of strings representing the command-line arguments passed
- *     * to the shell.
- *      * @toks: An array of strings representing the tokens of the current command
- *       * input.
- *        * @pid: An integer representing the process ID of the current process.
- *         * @status: An integer representing the exit status of the last executed
- *          * command.
- *           * @_environ: An array of strings.
- *            * @loop_count: An integer representing the number of times the shell has
- *             * executed its main loop.
- *              */
+ * struct SHELL - This struct represents the shell environment and stores info
+ * on the shell's state.
+ * @av: An array of strings representing the command-line arguments passed
+ * to the shell.
+ * @toks: An array of strings representing the tokens of the current command
+ * input.
+ * @pid: An integer representing the process ID of the current process.
+ * @status: An integer representing the exit status of the last executed
+ * command.
+ * @_environ: An array of strings.
+ * @loop_count: An integer representing the number of times the shell has
+ * executed its main loop.
+ */
 
 typedef struct SHELL
 {
-		char **av;
-			char **toks;
-				int pid;
-					int status;
-						char **_environ;
-							int loop_count;
+	char **av;
+	char **toks;
+	int pid;
+	int status;
+	char **_environ;
+	int loop_count;
 } SHELL;
 
 
-/*builtin command struct*/
-
 /**
- *  * struct builtincommands - This struct stores built-in commands in the shell.
- *   * @command: A string representing the name of the built-in command.
- *    * @function: A function pointer to the function that executes
- *     * the built-in command.
- *      */
+ * struct builtincommands - This struct stores built-in commands in the shell.
+ * @command: A string representing the name of the built-in command.
+ * @function: A function pointer to the function that executes
+ * the built-in command.
+ */
 
 typedef struct builtincommands
 {
-		char *command;
-			void (*function)(SHELL *);
+	char *command;
+	void (*function)(SHELL *);
 } builtin;
 
 
-				/*LINKED LISTS*/
-
-
-/*logical operators struct*/
 
 /**
- *  * struct log - This struct represents a node in a linked list used to store
- *   * logical operators in a command line.
- *    * @com: A string representing the command associated with the node.
- *     * @sep: A character representing the logical operator separator.
- *      * @next: A pointer to the next node in the linked list.
- *       */
+ * struct log - This struct represents a node in a linked list used to store
+ * logical operators in a command line.
+ * @com: A string representing the command associated with the node.
+ * @sep: A character representing the logical operator separator.
+ * @next: A pointer to the next node in the linked list.
+ */
 
 typedef struct log
 {
-		char *com;
-			char sep;
-				struct log *next;
+	char *com;
+	char sep;
+	struct log *next;
 } log;
 
 			/* PROCESS FUNCTIONS */
@@ -135,7 +124,6 @@ void exit_command(SHELL *shell);
 void env_command(SHELL *shell);
 int handle_builtin_commands(SHELL *shell);
 
-			/* FUNCTION IMPLIMENTATIONS */
 
 char *getenv_custom(const char *name);
 int Atoi(const char *nptr);
