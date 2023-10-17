@@ -265,16 +265,16 @@ int main(void)
 			{
 				first = get_exe(av[0]);
 				if (first != NULL)
-					child_pid = fork();
-
-				/*child_pid = fork();*/
+				{
+				child_pid = fork();
 				if (child_pid == 0)
 				{
 					if (execve(first, av, environ) == -1)
 					{
-						printf("%s :command not found\n", av[0]);
+						printf("./hsh :No such file or directory\n");
 						reset(&av, &command, &first);
 					}
+					reset(&av, &command, &first);
 				}
 				else
 				{
@@ -282,11 +282,16 @@ int main(void)
 					wait(&status);
 					if (status != 0)
 					{
-						printf("command failed\n");
+						reset(&av, &command, &first);
+						printf("command not found\n");
 					}
 				}
+				}
+				else
+					printf("./hsh :No such file or directory\n");
 			}
 			}
+			
 		}
 		/*reset(&av, &command, &first);*/
 		reset(&av, &command, &first);
