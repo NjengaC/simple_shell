@@ -32,17 +32,18 @@ int handle_alias(char **av)
 	}
 	return (0);
 }
+static int num_aliases;
 /**
  * add_alias- adds an alias
  * @name: name of the alias
  * @value: value to add
  * Return: 0 on success
  */
-static int num_aliases = 0;
+
 
 int add_alias(const char *name, const char *value)
 {
-	/*static int num_aliases = 0;*/
+	int num_aliases = 0;
 
 	if (num_aliases >= MAX_ALIASES)
 	{
