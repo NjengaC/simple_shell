@@ -38,9 +38,12 @@ int handle_alias(char **av)
  * @value: value to add
  * Return: 0 on success
  */
+static int num_aliases = 0;
 
 int add_alias(const char *name, const char *value)
 {
+	/*static int num_aliases = 0;*/
+
 	if (num_aliases >= MAX_ALIASES)
 	{
 		return (-1);

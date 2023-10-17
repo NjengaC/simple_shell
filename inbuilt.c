@@ -169,18 +169,3 @@ int handle_builtins(char **av, char *command)
 	}
 	return (0);
 }
-
-/**
- * cleanup_shell - frees aliases
- * Return: nothing
- */
-void cleanup_shell(void)
-{
-	int i;
-
-	for (i = 0; i < num_aliases; i++)
-	{
-		free(aliases[i].name);
-		free(aliases[i].value);
-	}
-}
