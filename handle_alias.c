@@ -1,118 +1,172 @@
 #include "shell.h"
+
 /**
- * handle_alias - handles the alias command
- * @av: array of strings
- * Return: 0 on success
+ *process - processees the commands for forking or execution
+ *@shell: the mai struct
+ *Return: nothing
  */
 
-int handle_alias(char **av)
+int process(SHELL *shell)
 {
-	if (av[1])
-	{
-		if (av[2])
-		{
+	int Exec, i, numbuilts;
+	char *Dir,  *bul = shell->toks[0], *builtin[] = {"cd", "exit"};
 
-			if (add_alias(av[1], av[2]) == 0)
-			{
-				printf("Alias added: %s='%s'\n", av[1], av[2]);
-			}
-			else
-			{
-				printf("Error: Cannot add alias; alias limit reached.\n");
-			}
-		}
-		else
-		{
-			printf("Usage: alias [name[='value'] ...]\n");
-		}
+	Exec = executables(shell->toks[0]);
+
+	numbuilts = sizeof(builtin) / sizeof(builtin[0]);
+	for (i = 0; i < numbuilts; i++)
+	{
+		if (Strcmp(bul, builtin[i]) == 0)
+			return (0);
+	}
+	if (Exec == -1)
+	{
+		Command_unfound(shell);
+		shell->status = 127;
+		return (1);
+	}
+	else if (Exec == 0)
+	{
+		Dir = Which(shell->toks[0]);
 	}
 	else
 	{
-		list_aliases();
+		Dir = shell->toks[0] + Exec;
+	}
+	if (Access(Dir, shell) == -1)
+	{
+		shell->status = 126, free(Dir);
+		return (1);
+	}
+	Fork(Dir, shell);
+	if (Exec == 0)
+	{
+		free(Dir);
 	}
 	return (0);
 }
-static int num_aliases;
+
 /**
- * add_alias- adds an alias
- * @name: name of the alias
- * @value: value to add
- * Return: 0 on success
+ *Fork - performs the executio of the command
+ *@input: the path of the executable
+ *@shell: the mai struct
  */
 
-
-int add_alias(const char *name, const char *value)
+void Fork(char *input, SHELL *shell)
 {
-	int num_aliases = 0;
+	pid_t Pid;
+	int state;
+	char **tok;
 
-	if (num_aliases >= MAX_ALIASES)
+
+	Pid = fork();
+	tok = shell->toks;
+
+	if (Pid == 0)
 	{
-		return (-1);
+		execve(input, tok, environ);
 	}
 
-	aliases[num_aliases].name = strdup(name);
-	aliases[num_aliases].value = strdup(value);
+	else if (Pid < 0)
+	{
+		perror(tok[0]);
+		return;
+	}
 
-	num_aliases++;
-	return (0);
+	else
+	{
+		do {
+			waitpid(Pid, &state, WUNTRACED);
+		} while (!WIFEXITED(state) && !WIFSIGNALED(state));
+	}
+
+	shell->status = state / 256;
 }
 /**
- * remove_alias - removes an alias
- * @name: name of the alias
- * Return: 0 0n success
+ *handle_file - handles commands in a file
+ *@shell: main struct
+ *Return: nothing
  */
 
-int remove_alias(const char *name)
+void handle_file(SHELL *shell)
 {
-	int i, j;
+	FILE *reads;
+	size_t len;
+	char *line = NULL;
 
-	for (i = 0; i < num_aliases; i++)
+
+	reads = fopen(shell->av[1], "r");
+
+	if (reads == NULL)
 	{
-		if (strcmp(aliases[i].name, name) == 0)
+		exit(EXIT_FAILURE);
+	}
+
+	while ((getline(&line, &len, reads)) != -1)
+	{
+		shell->loop_count++;
+		source(shell, line);
+	}
+	if (line)
+	{
+		free(line);
+	}
+
+	fclose(reads);
+	exit(0);
+}
+/**
+ *Frees - frees the main struct
+ *@eshell: the main struct
+ *Return: void
+ */
+
+void Frees(SHELL *eshell)
+{
+	int j;
+
+	if (eshell->toks)
+	{
+		for (j = 0; eshell->toks[j]; j++)
 		{
-			free(aliases[i].name);
-			free(aliases[i].value);
-			num_aliases--;
-
-			for (j = i; j < num_aliases; j++)
-			{
-				aliases[j] = aliases[j + 1];
-			}
-			return (0);
+			free(eshell->toks[j]);
 		}
+
+		free(eshell->toks);
 	}
-	return (-1);
+
+	for (j = 0; eshell->_environ[j]; j++)
+	{
+		free(eshell->_environ[j]);
+	}
+
+	free(eshell->_environ);
+
+	eshell->toks = NULL;
 }
+
 /**
- * list_aliases - lists all aliases
- * Return: nothing
+ *Free_log - frees the logical operators linked list
+ *@head: the head of the liked list
+ *Return: void
  */
 
-void list_aliases(void)
+void Free_log(log *head)
 {
-	int i;
+	log *current, *tmp;
 
-	for (i = 0; i < num_aliases; i++)
+	if (head == NULL)
 	{
-		printf("alias %s='%s'\n", aliases[i].name, aliases[i].value);
+		return;
 	}
-}
-/**
- * *lookup_alias - checks alias presence
- * @name: name of the alias
- * Return: the name
- */
 
-const char *lookup_alias(const char *name)
-{
-	int i;
+	current = head;
 
-	for (i = 0; i < num_aliases; i++)
+	while (current)
 	{
-		if (strcmp(aliases[i].name, name) == 0)
-		{
-			return (aliases[i].value);
-		}
+		free(current->com);
+		tmp = current->next;
+		free(current);
+		current = tmp;
 	}
-	return (NULL);
 }

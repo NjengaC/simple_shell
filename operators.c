@@ -1,137 +1,119 @@
 #include "shell.h"
+
 /**
- * **tokenize_and - tokenizes commandline with && logical operator
- * @input: command
- * Return: array of characters
+ *Atoi- changes as tring to int
+ *@nptr: the string number
+ *Return: the int
  */
-
-char **tokenize_and(char *input)
+int Atoi(const char *nptr)
 {
-	char **tokens;
-	int i = 0, token_count = 0;
-	char *token;
+	int result = 0, sign = 1, i = 0;
 
-	while (input[i])
+	if (nptr[0] == '-')
 	{
-		if (input[i] == '\n')
+		sign = -1;
+		i = 1;
+	}
+	while (nptr[i] != '\0')
+	{
+		if (nptr[i] >= '0' && nptr[i] <= '9')
 		{
-			input[i] = '\0';
-		}
-		i++;
-	}
-	if (input == NULL)
-	{
-		return (NULL);
-	}
-	tokens = malloc(strlen(input) * sizeof(char *));
-
-	if (tokens == NULL)
-	{
-		perror("malloc");
-		exit(1);
-	}
-	token = strtok(input, "&&");
-	while (token != NULL)
-	{
-		tokens[token_count] = _strdup(token);
-		if (tokens[token_count] == NULL)
-		{
-			perror("strdup");
-			exit(1);
-		}
-		token_count++;
-		token = strtok(NULL, "&&");
-	}
-	free_str(token);
-	tokens[token_count] = NULL;
-	return (tokens);
-}
-/**
- * handle_operators - handles command with logical operator
- * @commands: commands array
- * @copy: command line as written on terminal
- * Return: 0 on success
- */
-
-int handle_operators(char **commands, char *copy)
-{
-	if (_strchr(copy, ';'))
-	{
-		printf("%s\n", copy);
-		execute(commands);
-		return (0);
-	}
-	else if (_strchr(copy, '&'))
-	{
-		printf("%s\n", copy);
-		execute_and(commands);
-	}
-	else
-	{
-		return (0);
-	}
-	return (0);
-}
-/**
- * execute_or - executes command with || logical operator
- * @commands: commands array
- * Return: 0 0n success
- */
-int execute_or(char **commands);
-int execute_or(char **commands)
-{
-	int status;
-	int i = 0, success_status = 0;
-	char **av = NULL;
-	char *first = NULL;
-	pid_t child_pid;
-
-	while (commands[i] != NULL)
-	{
-		av = _strtok(commands[i], " ");
-		if (check_inbuilts(av[0]) == 1)
-		{
-			handle_builtins(av, commands[i]);
+			result = result * 10 + (nptr[i] - '0');
+			i++;
 		}
 		else
 		{
-			first = get_exe(av[0]);
-			if (first == NULL)
-			{
-				first = strdup(av[0]);
-			}
-			child_pid = fork();
-			if (child_pid == 0)
-			{
-				if (execve(first, av, environ) == -1)
-				{
-					printf("%s: command not found\n", av[0]);
-				}
-			}
-			else
-			{
-				wait(&status);
-				if (status == 0)
-				{
-					success_status = 1;
-					reset(&av, &commands[i], &first);
-					break;
-				}
-			}
+			return (0);
 		}
-		reset(&av, &commands[i], &first);
-		i++;
+	}
+	return (sign * result);
+}
+/**
+ * Strlen - function that counts the number of characters in a given string.
+ * @input: Pointer to the string whose characters are to be counted.
+ *
+ * Return: The number of character counted in the string.
+ **/
 
-	}
-	i++;
-	while (commands[i] != NULL)
+int Strlen(char *input)
+{
+	int i;
+
+	for (i = 0; input[i]; i++)
+		;
+	return (i);
+}
+
+
+/**
+ *extension - an extesnion for strtok
+ *@nextToken: the next token
+ *@delim: the delimiters used
+ *@isDelimiter: a tracker for the delimiters
+ *Return: nothing
+ */
+
+void extension(char *nextToken, const char *delim, int *isDelimiter)
+{
+	int i;
+
+	for (i = 0; delim[i] != '\0'; i++)
 	{
-		free_str(commands[i]);
-		i++;
+		if (*nextToken == delim[i])
+		{
+			*isDelimiter = 1;
+			break;
+		}
 	}
-	if (commands != NULL)
+}
+
+/**
+ * my_strlen - function that counts the number of characters in a given string.
+ * @s: Pointer to the string whose characters are to be counted.
+ *
+ * Return: The number of character counted in the string.
+ **/
+
+size_t my_strlen(const char *s)
+{
+	size_t len = 0;
+
+	while (s[len] != '\0')
 	{
-		free_sarray(commands);
+		len++;
 	}
-	return (success_status);
+	return (len);
+}
+/**
+ *Log - a linked list for logical operators
+ *@head: the head of the linked list
+ *@command: the input command
+ *Return: nothing
+ */
+
+void Log(log **head, char *command)
+{
+	log *current, *new;
+
+
+	new = malloc(sizeof(log));
+
+	new->com = Strdup(command);
+	new->sep = 'a';
+	new->next = NULL;
+
+	if (*head == NULL)
+	{
+		*head = new;
+		return;
+	}
+
+	current = *head;
+
+	while (current->next != NULL)
+	{
+		current = current->next;
+	}
+
+	current->next = new;
 }

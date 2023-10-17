@@ -1,159 +1,161 @@
 #include "shell.h"
 /**
- * _atoi - converts a string to an integer
- * @s: string to convert
- *
- * Return: the int converted from the string
+ *exit_command - exits shell
+ *@shell: the main struct
+ *Return: nothing
  */
 
-int _atoi(char *s)
-{
-	int i, d, n, len, f, digit;
 
-	i = 0;
-	d = 0;
-	n = 0;
-	len = 0;
-	f = 0;
-	digit = 0;
-	while (s[len] != '\0')
-	{
-		len++;
-	}
-	while (i < len && f == 0)
-	{
-		if (s[i] == '-')
-		{
-			++d;
-		}
-		if (s[i] >= '0' && s[i] <= '9')
-		{
-			digit = s[i] - '0';
-			if (d % 2)
-			{
-				digit = -digit;
-			}
-			n = n * 10 + digit;
-			f = 1;
-			if (s[i + 1] < '0' || s[i + 1] > '9')
-			{
-				break;
-			}
-			f = 0;
-		}
-		i++;
-	}
-	if (f == 0)
-	{
-		return (0);
-	}
-	return (0);
-}
-/**
- * _strlen - returns the length of a string
- * @s: string
- * Return: length
- */
-int _strlen(char *s)
+void exit_command(SHELL *shell)
 {
-	int i = 0;
+	int exit_status;
 
-	while (*s != '\0')
+	if (shell->toks[1] != NULL)
 	{
-		i++;
-		s++;
+		exit_status = Atoi(shell->toks[1]);
+		shell->status = exit_status;
+		exit(shell->status);
 	}
-	return (i);
+	else
+	{
+		shell->status = 0;
+		exit(shell->status);
+	}
 }
 
 /**
- * char *_strcpy - a function that copies the string pointed to by src
- * @dest: copy to
- * @src: copy from
- * Return: string
+ *change_dir_command - changes directories
+ *@shell: the main struct
+ *Return: nothing
  */
-char *_strcpy(char *dest, char *src)
+void change_dir_command(SHELL *shell)
 {
-	int l = 0;
-	int x = 0;
+	int result;
+	char cwd[1024];
+	const char *oldpwd;
 
-	while (*(src + l) != '\0')
+	if (!shell->toks[1] || Strcmp(shell->toks[1], "~") == 0)
 	{
-		l++;
+		result = chdir(getenv_custom("HOME"));
 	}
-	for ( ; x < l ; x++)
+	else if (Strcmp(shell->toks[1], "-") == 0)
 	{
-		dest[x] = src[x];
+		oldpwd = getenv_custom("OLDPWD");
+		if (oldpwd[0] == '\0')
+		{
+			perror("hsh");
+			return;
+		}
+		result = chdir(oldpwd);
 	}
-	dest[l] = '\0';
-	return (dest);
+	else
+	{
+		result = chdir(shell->toks[1]);
+	}
+
+	if (result == -1)
+	{
+		perror(shell->av[0]);
+		return;
+	}
+	else if (result != -1)
+	{
+		getcwd(cwd, sizeof(cwd));
+		setenv("OLDPWD", getenv_custom("PWD"), 1);
+		setenv("PWD", cwd, 1);
+	}
 }
 /**
- * _strcmp - compares two strings
- * @str1: first string
- * @str2: second string
- *
- *Return: difference of the strings
+ *env_extract - extracts enviroment varaibles
+ *@shell: the main struct
+ *Return: void
  */
-int _strcmp(char *str1, char *str2)
-{
-	while (*str1 != '\0' && *str2 != '\0')
-	{
-		if (*str1 != *str2)
-		{
-			return (*str1 - *str2);
-		}
-		str1++;
-		str2++;
-	}
 
-	return (*str1 - *str2);
+void env_extract(SHELL *shell)
+{
+	int env_count = 0, i, j;
+
+	while (environ[env_count] != NULL)
+		env_count++;
+	shell->_environ = malloc(sizeof(char *) * (env_count + 1));
+	if (!shell->_environ)
+		return;
+	for (i = 0; i < env_count; i++)
+	{
+		shell->_environ[i] = Strdup(environ[i]);
+		if (!shell->_environ[i])
+		{
+			for (j = 0; j < i; j++)
+				free(shell->_environ[j]);
+			free(shell->_environ);
+			return;
+		}
+	}
+	shell->_environ[env_count] = NULL;
 }
 /**
- * c_strtok - tokenizes a string and returns an null-terminated strings
- * @strn: string to break into tokens
- * @delimiter: delimiter
- * Return: null-terminated strings
+ *Command_unfound -  prints the command unfoud error
+ *@shell: the main struct
+ *Return: nothing
  */
 
-char *c_strtok(char *strn, const char *delimiter)
+void Command_unfound(SHELL *shell)
 {
-	static char *last_token;
-	char *first_token, *end_token;
-	ssize_t i;
+	char *loop_count;
 
-	if (strn != NULL)
-		last_token = strn;
-	else if (last_token == NULL || *last_token == '\0')
-		return (NULL);
+	loop_count = Itoa(shell->loop_count);
+	Write(shell->av[0]);
+	Write(": ");
+	Write(loop_count);
+	Write(": ");
+	Write(shell->toks[0]);
+	Write(": not found\n");
 
-	first_token = last_token;
-	end_token = NULL;
-	while (*last_token != '\0')
-	{
-		bool isdelim = false;
+	free(loop_count);
+}
 
-		for (i = 0; delimiter[i] != '\0'; i++)
-		{
-			if (*last_token == delimiter[i])
-			{
-				isdelim = true;
-				break;
-			}
-		}
-		if (isdelim)
-		{
-			*last_token = '\0';
-			end_token = last_token + 1;
-			last_token++;
-			break;
-		}
-		last_token++;
-	}
-	if (end_token == NULL)
-	{
-		end_token = last_token;
-	}
-	last_token = end_token;
-	return (first_token);
+/**
+ *path_error - prints the path error
+ *@shell: the main struct
+ *Return: nothing
+ */
+
+void path_error(SHELL *shell)
+{
+	char *loop_count;
+
+
+	loop_count = Itoa(shell->loop_count);
+
+	Write(shell->av[0]);
+	Write(": ");
+	Write(loop_count);
+	Write(": ");
+	Write(shell->toks[0]);
+	Write(": Permission denied\n");
+
+	free(loop_count);
+}
+
+/**
+ *write_error - writes error to thr console
+ *@error: the errror to be printed
+ *@shell: the main struct
+ *Return: nothhig
+ */
+
+void write_error(char *error, SHELL *shell)
+{
+	char *count = Itoa(shell->loop_count);
+
+	Write(shell->av[0]);
+	Write(": ");
+	Write(count);
+	Write(": ");
+	Write("Syntax error");
+	Write(": \"");
+	Write(error);
+	Write("\" unexpected\n");
+
+	free(count);
 }

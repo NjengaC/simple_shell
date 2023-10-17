@@ -1,217 +1,183 @@
 #include "shell.h"
 /**
- * handle_replace - handles the variable replacer $
- * @command: commandline as typed
- * Return: the replacement value
+ *source - cotrols and parses the input
+ *@shell: the main struct
+ *@line: the input
+ *Return: 0 incase of command exit else 1
  */
-char *handle_replace(char *command);
-char *handle_replace(char *command)
+
+int source(SHELL *shell, char *line)
 {
-	char *dollar_pos;
-	char *env_var;
-	char *replaced;
-	char *remaining = NULL;
-	char *var_val;
-	int var_length;
-	char *var_name, *exit_status_str;
-	int new_length, exit_s = 0;
-	pid_t pid;
-	char *pid_str, *new_str;
-	size_t before, after;
+	log *head, *current;
+	char *word, *copy;
+	int result;
 
-	remaining = strdup(command);
+	head = NULL, copy = Strdup(line), word = strtok(copy, "|&;\n");
 
-	while ((dollar_pos = strchr(remaining, '$')) != NULL)
+	while (word)
 	{
-		if (*(dollar_pos + 1) == '$')
+		Log(&head, word), word = strtok(NULL, "|&;\n");
+	}
+	seperator(&head, line),	current = head;
+	while (current)
+	{
+		shell->toks = tokenize(current->com, 1), env_extract(shell);
+		if (!shell->toks)
 		{
-			pid = getpid();
-			pid_str = itoa(pid);
-			before = dollar_pos - remaining;
-			after = strlen(dollar_pos + 2);
-			new_str = (char *)malloc(before + strlen(pid_str) + after + 1);
-			strncpy(new_str, remaining, before);
-			strcat(new_str, pid_str);
-			strcat(new_str, dollar_pos + 2);
-			free(remaining);
-			free(pid_str);
-			remaining = new_str;
+			continue;
 		}
-		else if (*(dollar_pos + 1) == '?')
+		result = handle_builtin_commands(shell);
+		if (result == 1)
 		{
-			if (WIFEXITED(exit_s))
+			free(copy), Free_log(head), Frees(shell);
+			return (0);
+		}
+		process(shell),	En_passant(shell, &current);
+		if (current)
+		{
+			current = current->next;
+		}
+		Frees(shell);
+	}
+	free(copy), Free_log(head);
+	return (1);
+}
+
+/**
+ *shuffle - swaps one of the logcal operators for non printables and back
+ *@line: the input
+ *@mode: 1 for swaping to non printables and 2 for the undo
+ *Return: nothing
+ */
+
+void shuffle(char *line, int mode)
+{
+	int i;
+	char a;
+
+	if (mode == 1)
+	{
+		for (i = 0; line[i]; i++)
+		{
+			a = line[i];
+			if (a == '|')
 			{
-				exit_s = WEXITSTATUS(exit_s);
+				line[i] = 1, i++;
 			}
-
-			exit_status_str = itoa(exit_s);
-			before = dollar_pos - remaining;
-			after = strlen(dollar_pos + 2);
-
-			new_str = (char *)malloc(before + strlen(exit_status_str) + after + 1);
-			strncpy(new_str, remaining, before);
-			strcat(new_str, exit_status_str);
-			strcat(new_str, dollar_pos + 2);
-
-			free(remaining);
-			free(exit_status_str);
-			remaining = new_str;
-		}
-		else
-		{
-		var_length = 0;
-		env_var = dollar_pos + 1;
-		while (env_var[var_length] && isalnum(env_var[var_length]))
-		{
-			var_length++;
-		}
-		var_name = malloc(sizeof(char) * (var_length + 1));
-
-		strncpy(var_name, env_var, var_length);
-		var_name[var_length] = '\0';
-		var_val = getenv(var_name);
-		if (var_val)
-		{
-
-			new_length = dollar_pos - remaining + strlen(var_val);
-			replaced = (char *)malloc(new_length + 1);
-			strncpy(replaced, remaining, dollar_pos - remaining);
-			strcat(replaced, var_val);
-			strcat(replaced, dollar_pos + var_length + 1);
-			free(remaining);
-			remaining = replaced;
-		}
-		else
-		{
-
-			remaining = dollar_pos + 1;
-		}
-		}
-	}
-	return (remaining);
-}
-
-
-/**
- * itoa - converts number to string
- * @num: number
- * Return: the string
- */
-
-char *itoa(int num)
-{
-	char *str;
-	int temp, i;
-	int numDigits = 0;
-
-	temp = num;
-	while (temp != 0)
-	{
-		temp /= 10;
-		numDigits++;
-	}
-
-	if (num == 0)
-	{
-		numDigits = 1;
-	}
-
-	str = (char *)malloc(numDigits + 1);
-
-	if (str != NULL)
-	{
-		for (i = numDigits - 1; i >= 0; i--)
-		{
-			str[i] = '0' + (num % 10);
-			num /= 10;
-		}
-		str[numDigits] = '\0';
-	}
-	else
-	{
-		printf("Memory allocation failed in intToString\n");
-	}
-	return (str);
-}
-/**
- * *tokenize_hash - tokenises upto where hash is
- * @input: the command containng hash
- * Return: the command upto hash
- */
-
-char *tokenize_hash(char *input)
-{
-int i = 0, c = 0;
-char *token;
-
-	while (input[i])
-	{
-		if (input[i] == '\n')
-		{
-			input[i] = '\0';
-		}
-		i++;
-	}
-
-	if (input[c] == '\0')
-	{
-		return (input);
-	}
-
-	while (input[c] != '#' && input[c] != '\0')
-	{
-		c++;
-	}
-
-	token = (char *)malloc(c + 1);
-
-	strncpy(token, input, c);
-	token[c] = '\0';
-
-	return (token);
-}
-/**
- * execute_hash - executes commands that were returned just before hash
- * @command: the command without hash
- * Return: 0 on success
- */
-
-int execute_hash(char *command)
-{
-	int status;
-	char **av = NULL;
-	char *first = NULL;
-	pid_t child_pid;
-
-	while (command != NULL)
-	{
-		av = _strtok(command, " ");
-		if ((check_inbuilts(av[0])) == 1)
-		{
-			handle_builtins(av, command);
-		}
-		else
-		{
-			first = get_exe(av[0]);
-			if (first == NULL)
-				first = strdup(av[0]);
-
-			child_pid = fork();
-			if (child_pid == 0)
+			else if (a == '&')
 			{
-				if (execve(first, av, environ) == -1)
+				line[i] = 2, i++;
+			}
+		}
+	}
+
+	else if (mode == 2)
+	{
+		for (i = 0; line[i]; i++)
+		{
+			a = line[i];
+			if (a == 1)
+			{
+				line[i] = '|';
+			}
+			else if (a == 2)
+			{
+				line[i] = '&';
+			}
+		}
+	}
+}
+/**
+ *En_passant - controls logical operators according to exit status
+ *@shell:  the main struct
+ *@current: the logical operators linked list
+ *Return: void
+ */
+
+void En_passant(SHELL *shell, log **current)
+{
+	char sp;
+	int stat;
+
+	stat = shell->status;
+	sp = (*current)->sep;
+
+	if (stat == 0)
+	{
+		if (sp == '&' || sp == ';')
+		{
+			return;
+		}
+		else if (sp == '|')
+		{
+			*current = (*current)->next;
+		}
+	}
+
+	else if (stat != 0)
+	{
+		if (sp == '|' || sp == ';')
+		{
+			return;
+		}
+		else if (sp == '&')
+		{
+			*current = (*current)->next;
+		}
+	}
+}
+/**
+ *handle_builtin_commands - handles builtins
+ *@shell: the main struct
+ *Return: 1 case of exit, 0 on success and -1 for fail
+ */
+int handle_builtin_commands(SHELL *shell)
+{
+	unsigned long int i;
+	int exit_status;
+
+	builtin builtin_commands[] = {
+		/*{"env", env_command},*/
+		{"exit", exit_command},
+		{"cd", change_dir_command}
+	};
+
+	for (i = 0; i < sizeof(builtin_commands) / sizeof(builtin); i++)
+	{
+		if (Strcmp(shell->toks[0], builtin_commands[i].command) == 0)
+		{
+			if (Strcmp(builtin_commands[i].command, "exit") == 0)
+			{
+				if (shell->toks[1])
 				{
-					printf("%s :command not found\n", av[0]);
-					reset(&av, &command, &first);
+					exit_status = Atoi(shell->toks[1]);
+					shell->status = exit_status;
 				}
+				else
+					shell->status = 0;
+				return (1);
 			}
-			else
-			{
-				wait(&status);
-				reset(&av, &command, &first);
-			}
+			builtin_commands[i].function(shell);
+			return (0);
 		}
-		reset(&av, &command, &first);
 	}
-	return (0);
+	return (-1);
+}
+
+
+/**
+ *env_command - prints the enviroment variables
+ *@shell: the mian struct
+ *Return: nothing
+ */
+void env_command(SHELL *shell)
+{
+	char **_env = shell->_environ;
+
+	while (*_env)
+	{
+		Write(*_env);
+		Write("\n");
+		_env++;
+	}
 }

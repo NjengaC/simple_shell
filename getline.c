@@ -1,160 +1,145 @@
 #include "shell.h"
+
 /**
- * **tokenize_separator - tokenizes with delimiter as command separator
- * @input: command line
- * Return: the tokens in an array
+ *Itoa- changes from integer to string
+ *@n: the number
+ *Return: a string of the number
  */
 
-char **tokenize_separator(char *input)
+char *Itoa(int n)
 {
-	char **tokens;
-	int i = 0, token_count = 0;
-	char *token;
+	unsigned int n1, temp;
+	char *buffer;
+	int i, length = 1;
 
-	while (input[i])
+	if (n < 0)
 	{
-		if (input[i] == '\n')
-		{
-			input[i] = '\0';
-		}
-		i++;
+		length++, n1 = (unsigned int)(-n);
 	}
-
-	if (input == NULL)
+	else
+	{
+		n1 = (unsigned int)n;
+	}
+	temp = n1;
+	while (temp /= 10)
+	{
+		length++;
+	}
+	buffer = (char *)malloc((length + 1) * sizeof(char));
+	if (buffer == NULL)
 	{
 		return (NULL);
 	}
-
-	tokens = malloc(strlen(input) * sizeof(char *));
-	if (tokens == NULL)
+	buffer[length] = '\0';
+	if (n < 0)
 	{
-		perror("malloc");
-		exit(1);
+		buffer[0] = '-';
+	}
+	for (i = length - 1; i >= 0; i--)
+	{
+		buffer[i] = (n1 % 10) + '0', n1 /= 10;
 	}
 
-	token = strtok(input, ";");
-	while (token != NULL)
-	{
-		tokens[token_count] = _strdup(token);
-		if (tokens[token_count] == NULL)
-		{
-			perror("strdup");
-			exit(1);
-		}
-		token_count++;
-		token = strtok(NULL, ";");
-	}
-	free_str(token);
-	tokens[token_count] = NULL;
-	return (tokens);
-}
-/**
- * free_sarray - frees an array of strings
- * @av: the array to free
- * Return: 0 on success
- */
-void free_sarray(char **av)
-{
-	int i;
-
-	if (av != NULL)
-	{
-		i = 0;
-		/*printf("not null. freeing\n");*/
-
-		while (av[i] != NULL)
-		{
-			if (av[i] != NULL)
-			{
-				free(av[i]);
-			}
-			i++;
-		}
-		free(av);
-	}
+	return (buffer);
 }
 
 /**
- * free_str - frees a string
- * @str: a string allocated memory by malloc
- * Return: nothing
- */
-void free_str(char *str)
-{
-	if (str != NULL)
-	{
-		free(str);
-	}
-}
-/**
- * whitespace - checks for white spaces
- * @command: command input
- * Return: 0 is command consist of whitespaces
- */
-int whitespace(char *command)
-{
-	int i;
-	int count = 0;
-	int len;
-
-
-	len = strlen(command);
-	for (i = 0; i < len; i++)
-	{
-		if (command[i] == ' ' || command[i] == '\t' || command[i] == '\n')
-			count++;
-		else
-			return (0);
-	}
-	return (1);
-}
-
-/**
- * tokenize - tokenizes input with logical operators and command separator
- * @input: input
- * Return: array of tokens
+ *Strdup - dublicates a string
+ *@s: the string to be dublictated
+ *Return: a dublicated string
  */
 
-char **tokenize(char *input)
+char *Strdup(const char *s)
 {
-	char **tokens;
-	int i = 0, token_count = 0;
-	char *token;
+	size_t len;
+	const char *ptr;
+	char *copy, *copy_ptr;
 
-	while (input[i])
-	{
-		if (input[i] == '\n')
-		{
-			input[i] = '\0';
-		}
-		i++;
-	}
-	if (input == NULL)
+	if (s == NULL)
 	{
 		return (NULL);
 	}
-
-	tokens = malloc(strlen(input) * sizeof(char *));
-
-	if (tokens == NULL)
+	len = 0, ptr = s;
+	while (*ptr != '\0')
 	{
-		perror("malloc");
-		exit(1);
+		len++;
+		ptr++;
 	}
-
-	token = strtok(input, "||");
-	while (token != NULL)
+	copy = (char *)malloc((len + 1) * sizeof(char));
+	if (copy == NULL)
 	{
-		tokens[token_count] = _strdup(token);
-		if (tokens[token_count] == NULL)
-		{
-			perror("strdup");
-			exit(1);
-		}
-		token_count++;
-		token = strtok(NULL, "||");
+		free(copy);
+		return (NULL);
 	}
-	free_str(token);
-	tokens[token_count] = NULL;
-	return (tokens);
+	ptr = s;
+	copy_ptr = copy;
+	while (*ptr != '\0')
+	{
+		*copy_ptr = *ptr;
+		copy_ptr++;
+		ptr++;
+	}
+	*copy_ptr = '\0';
+	return (copy);
+}
+
+/**
+ *Strcmp - compares two strings
+ *@s1: the first character
+ *@s2: the second string
+ *Return: 0 if they match else 1
+ */
+
+int Strcmp(const char *s1, const char *s2)
+{
+	while (*s1 != '\0' && *s2 != '\0')
+	{
+		if (*s1 != *s2)
+			return (*s1 - *s2);
+		s1++;
+		s2++;
+	}
+	return (*s1 - *s2);
+}
+
+
+/**
+ *Strcpy - copies a string
+ *@dest: the destination
+ *@src:  the source
+ *Return: the copied string
+ */
+
+char *Strcpy(char *dest, const char *src)
+{
+	char *dest_start = dest;
+
+	while (*src != '\0')
+		*dest++ = *src++;
+
+	*dest = '\0';
+
+	return (dest_start);
+}
+
+/**
+ *Strcat - concatenates two strings
+ *@dest: the destination
+ *@src: the source string
+ *Return: the concanted string
+ */
+
+char *Strcat(char *dest, const char *src)
+{
+	char *dest_start = dest;
+
+	while (*dest != '\0')
+		dest++;
+
+	while (*src != '\0')
+		*dest++ = *src++;
+
+	*dest = '\0';
+
+	return (dest_start);
 }

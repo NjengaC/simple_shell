@@ -1,171 +1,232 @@
 #include "shell.h"
+
 /**
- * _chdir - change directories
- * @av: array of strings containing command cd and its arguments
- * Return: 0 on success and 1 on failure
+ *global_var - checks for eviroment variables
+ *@input: the input strig
+ *@shell: the main struct
+ *Return: an intergrated string
  */
 
-int _chdir(char **av);
-int _chdir(char **av)
+char *global_var(char *input __attribute__ ((unused)), SHELL *shell)
 {
-	char *newDir = NULL;
-	char *prevDir = NULL;
-	char *dir = NULL;
-	int i = 0;
+	char *status, *id;
+	int i;
 
-	while (av[i])
+	for (i = 0; input[i]; i++)
 	{
-		i++;
-	}
-
-	if (i > 1)
-	{
-
-		if (_strcmp(av[1], "-") == 0)
+		if (input[i] == '$')
 		{
-			dir = getenv("OLDPWD");
-			if (dir == NULL)
+			if (input[i + 1] == '?')
 			{
-				perror("cd: OLDPWD not set\n");
-				return (1);
+				status = Itoa(shell->status);
+				return (exit_status(input, status));
+			}
+
+			else if (input[i + 1] == '$')
+			{
+				id = Itoa(shell->pid);
+				return (identity(input, id));
+			}
+
+			else
+			{
+				return (En_var(input, shell));
 			}
 		}
+	}
+
+
+	return (input);
+}
+
+/**
+ *exit_status - handles printig of the exit status
+ *@input: the iiput string
+ *@status: the status string
+ *Return: the strings combined
+ */
+
+char *exit_status(char *input, char *status)
+{
+	int i, len, j, l;
+	char *new;
+
+	len = (Strlen(input) + Strlen(status));
+	new = malloc(len + 1);
+
+	if (!new)
+	{
+		Write("MEMORY ALLOCATION FAILURE\n");
+		exit(EXIT_FAILURE);
+	}
+
+	for (i = j = 0; input[i]; i++)
+	{
+		if (input[i] == '$')
+		{
+			for (l = 0; l < Strlen(status); l++)
+			{
+				new[j] = status[l];
+				j++;
+			}
+			i++;
+		}
+
 		else
-			dir = av[1];
+		{
+			new[j] = input[i];
+			j++;
+		}
+	}
+
+	new[j] = '\0';
+	free(status);
+	free(input);
+	return (new);
+}
+
+/**
+ *identity - handles the pid
+ *@input: the string input
+ *@id: the string id
+ *Return: a string with the id intergrated
+ */
+
+char *identity(char *input, char *id)
+{
+	int i, len, j, l;
+	char *new;
+
+	len = (Strlen(input) + Strlen(id));
+	new = malloc(len + 1);
+
+	if (!new)
+	{
+		Write("MEMORY ALLOCATION FAILURE\n");
+		exit(EXIT_FAILURE);
+	}
+
+	for (i = j = 0; input[i]; i++)
+	{
+		if (input[i] == '$')
+		{
+			for (l = 0; l < Strlen(id); l++)
+			{
+				new[j] = id[l];
+				j++;
+			}
+			i++;
+		}
+
+		else
+		{
+			new[j] = input[i];
+			j++;
+		}
+	}
+
+	new[j] = '\0';
+	free(id);
+	free(input);
+	return (new);
+}
+
+/**
+ *En_var - handles enviroment variables
+ *@input: the string input
+ *@shell: the mai struct
+ *Return: a string with the enviroment variable  integrated
+ */
+
+char *En_var(char *input, SHELL *shell __attribute__ ((unused)))
+{
+	char *ename, *copy, *new;
+	int len;
+
+	ename = input, copy = NULL;
+	while (*ename)
+	{
+		if (*ename == '$')
+		{
+			break;
+		}
+		ename++;
+	}
+	ename = _strtok(ename, " \n");
+	if (!*(ename + 1))
+	{
+		copy = "$";
 	}
 	else
 	{
-		dir = getenv("HOME");
-		if (dir == NULL)
-		{
-			perror("cd: HOME not set\n");
-			return (1);
-		}
+		ename++;
+		copy = getenv_custom(ename);
 	}
-	prevDir = getcwd(NULL, 0);
-
-	if (prevDir == NULL)
+	if (copy)
 	{
-		perror("getcwd");
-		return (1);
+		len = Strlen(input) + (Strlen(copy) - Strlen(ename));
+		new = malloc((len + 1) * sizeof(char));
 	}
-	if (chdir(dir) != 0)
+	else
 	{
-		perror("chdir");
-		free(prevDir);
-		return (1);
+		new = malloc((Strlen(input) + 1) * sizeof(char));
 	}
-	if (setenv("PWD", getcwd(NULL, 0), 1) != 0)
+	if (!new)
 	{
-		perror("setenv");
-		free(prevDir);
-		return (1);
+		exit(EXIT_FAILURE);
 	}
-	newDir = getcwd(NULL, 0);
-
-	if (newDir == NULL)
-	{
-		perror("getcwd");
-		free(prevDir);
-		return (1);
-	}
-	printf("%s\n", newDir);
-	free(newDir);
-	free(prevDir);
-	return (0);
+	return (replacer(input, new, copy, (*ename == '$' ? ename : ename - 1)));
 }
+
 /**
- * _setenv - sets enviroment variables using the built in command
- * @name: name of the envirment
- * @value: value to be placed under name
- * @overwrite: overwrite status
- *
- * Return: 0 on success, -1 on error
- */
-int _setenv(const char *name, const char *value, int overwrite)
-{
-
-	if (getenv(name) != NULL && !overwrite)
-	{
-		perror("getenv");
-		return (-1);
-	}
-
-
-	if (setenv(name, value, 1) != 0)
-	{
-		perror("setenv");
-		return (-1);
-	}
-
-	return (0);
-}
-/**
- * _unsetenv - unsets an existing environment
- * @name: name of the environment to unset
- *
- * Return: 0
+ *replacer - where the swappiong takees place
+ *@input: the input string
+ *@new: the new mallocated string
+ *@ename: the name be replaced
+ *@copy: the enviroment variable to copy
+ *Return: an itergrated string
  */
 
-int _unsetenv(const char *name)
+char *replacer(char *input, char *new, char *copy, char *ename)
 {
+	int i, j, k;
 
-	if (unsetenv(name) != 0)
+	if (copy)
 	{
-		perror("unsetenv");
-		return (-1);
-	}
-
-	return (0);
-}
-/**
-* handle_builtins - handles the exit and env inbuilts
-* @av: array of stringscommandline argument
-* @command: commnad
-* Return: (0)
-*/
-int handle_builtins(char **av, char *command)
-{
-	if (_strcmp(av[0], "exit") == 0)
-	{
-		if (av[1])
+		for (i = j = 0; input[i]; i++)
 		{
-			int status;
-
-			status = atoi(av[1]);
-			free_str(command);
-			free_sarray(av);
-			exit(status);
-		}
-		else
-		{
-			free_str(command);
-			free_sarray(av);
-			exit(0);
+			if (input[i] == '$')
+			{
+				for (k = 0; copy[k]; k++)
+				{
+					new[j] = copy[k];
+					j++;
+				}
+				i += Strlen(ename);
+			}
+			else
+			{
+				new[j] = input[i];
+				j++;
+			}
 		}
 	}
-	else if (_strcmp(av[0], "setenv") == 0)
+	else if (copy == NULL)
 	{
-		if (av[1] != NULL && av[2] != NULL)
+		for (i = j = 0; input[i]; i++)
 		{
-			if (_setenv(av[1], av[2], 1))
-				printf("setenv: command not found\n");
+			if (input[i] == '$')
+			{
+				i += Strlen(ename);
+			}
+			else
+			{
+				new[j] = input[i];
+				j++;
+			}
 		}
 	}
-	else if (_strcmp(av[0], "unsetenv") == 0)
-	{
-		if (av[1] != NULL)
-			_unsetenv(av[1]);
-		else
-			printf("setenv: command not found\n");
-	}
-	else if (_strcmp(av[0], "cd") == 0)
-	{
-		chdir(av[1]);
-	}
-	else if (_strcmp(av[0], "alias") == 0)
-	{
-		handle_alias(av);
-	}
-	return (0);
+	new[j] = '\0';
+	free(input);
+	return (new);
 }

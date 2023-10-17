@@ -1,144 +1,219 @@
 #include "shell.h"
+
+#define buffsize 1024
+
 /**
- * _strchr - function checks occurence of a character
- * @s: name of string containing character
- * @c: character to locate
+ * Realloc - function that reallocates memory  using malloc.
+ * @ptr: Pointer to the memory to be reduced.
+ * @old_size: The old size of the memory to be changed.
+ * @size: the new size to change to.
  *
- * Return: 0 on (Success) else return the character
+ * Return: void.
  */
 
-int _strchr(char *s, char c)
-
+void *Realloc(void *ptr, size_t old_size, size_t size)
 {
-	int i;
+	void *new_ptr;
+	char *old_ptr = (char *)ptr;
+	char *new_char_ptr;
+	size_t i;
 
-	for (i = 0; s[i] != '\0'; i++)
+	if (!ptr)
 	{
-		if (s[i] == c)
-			return (1);
+		return (malloc(size));
 	}
-	return (0);
-}
-/**
- * _putchar - writes the character c to stdout
- * @c: The character to print
- *
- * Return: On success 1.
- * On error, -1 is returned, and errno is set appropriately.
- */
-int _putchar(char c)
-{
-
-	return (write(1, &c, 1));
-}
-/**
- * _strdup - duplicate content of a string
- * @str: string to duplicate
- * Return: duplicated string
- */
-char *_strdup(const char *str)
-{
-	ssize_t len = strlen(str);
-	char *duplicate;
-
-	if (str == NULL)
+	else if (size == 0)
 	{
+		free(ptr);
+		return (NULL);
+	}
+	else
+	{
+		new_ptr = malloc(size);
+		if (!new_ptr)
+		{
+			return (NULL);
+		}
+		if (size < old_size)
+		{
+			old_size = size;
+		}
+		new_char_ptr = (char *)new_ptr;
+		for (i = 0; i < old_size; i++)
+		{
+			new_char_ptr[i] = old_ptr[i];
+		}
+		free(ptr);
+		return (new_ptr);
+	}
+}
+
+
+/**
+ * Getline - Function that fetches the entire input from the output
+ * stream.
+ *
+ * Return: The input fetched from the stream.
+ */
+
+
+char *Getline()
+{
+	char *buffer, r = 0;
+	int i = 0, charsRead, buffer_size;
+
+	buffer_size = buffsize,	buffer = malloc(buffer_size * sizeof(char));
+
+	if (buffer == NULL)
+	{
+		free(buffer);
 		return (NULL);
 	}
 
-	duplicate = malloc(len + 1);
-	if (duplicate == NULL)
+	while (r != EOF && r != '\n')
 	{
-		perror("malloc");
-		exit(EXIT_FAILURE);
-	}
+		fflush(stdin);
+		charsRead = read(STDIN_FILENO, &r, 1);
+		if (charsRead == 0)
+		{
+			free(buffer);
+			exit(EXIT_SUCCESS);
+		}
+		buffer[i] = r;
+		if (buffer[0] == '\n')
+		{
+			free(buffer);
+			return ("\0");
+		}
 
-	if (duplicate != NULL)
-	{
-		strcpy(duplicate, str);
+		i++;
 	}
-	return (duplicate);
+	buffer[i] = '\0', buffer = hash(buffer);
+	if (buffer == NULL)
+	{
+		return ("\0");
+	}
+	return (buffer);
 }
 
 /**
- * execute_and - executes command with logical &
- * @commands: commands
- * Return: 0 on succes
+ * hash - Function that handles the case where # has been used in a command.
+ * @buffer: The pointer to where the user input is stored.
+ *
+ * Return: buffer after the #has been ignored hence a comment.
  */
-int execute_and(char **commands);
-int execute_and(char **commands)
+
+char *hash(char *buffer)
 {
-	int status;
-	int i = 0, success_status = 0, exec_failed;
-	char **av = NULL;
-	char *first = NULL;
-	pid_t child_pid;
+	int i;
+	bool quotes = false;
 
-	while (commands[i] != NULL)
+	if (buffer[0] == '#')
 	{
-		av = _strtok(commands[i], " ");
-		if (av[0])
+		free(buffer);
+		return (NULL);
+	}
+
+	else
+	{
+		for (i = 0; buffer[i]; i++)
 		{
-			if (check_inbuilts(av[0]) == 1)
+			if (buffer[i] == 34)
 			{
-				handle_builtins(av, commands[i]);
+				quotes = !quotes;
 			}
-			else
+
+			if (!quotes && buffer[i] == '#' && buffer[i - 1] == ' ')
 			{
-				first = get_exe(av[0]);
-				if (first == NULL)
-				{
-					first = strdup(av[0]);
-				}
-
-				exec_failed = 0;
-
-				child_pid = fork();
-				if (child_pid == 0)
-				{
-					if (execve(first, av, environ) == -1)
-					{
-						exec_failed = 1;
-						printf("%s: command not found\n", av[0]);
-					}
-					exit(exec_failed);
-				}
-				else
-				{
-					wait(&status);
-					if (WIFEXITED(status) && WEXITSTATUS(status) != 0)
-					{
-						reset(&av, &commands[i], &first);
-						break;
-					}
-					else
-					{
-						success_status = 1;
-					}
-				}
+				buffer[i] = '\0';
+				break;
 			}
-			reset(&av, &commands[i], &first);
 		}
-		i++;
-		if (!success_status)
+	}
+
+	return (buffer);
+}
+
+/**
+ * _strtok - function that tokenizes a string based on whatever it is given.
+ * @str: Pointer to the string to be tokenized.
+ * @delim: The delimiter which strtok function uses to tokenize the string.
+ *
+ * Return: The tokenized words, else return NULL upon failure.
+ */
+
+char *_strtok(char *str, const char *delim)
+{
+	static char *nextToken;
+	char *token = NULL;
+	int isDelimiter;
+
+	if (str != NULL)
+		nextToken = str;
+	if (nextToken == NULL || *nextToken == '\0')
+		return (NULL);
+	while (*nextToken != '\0')
+	{
+		isDelimiter = 0;
+		extension(nextToken, delim, &isDelimiter);
+		if (!isDelimiter)
+			break;
+		nextToken++;
+	}
+	if (*nextToken == '\0')
+		return (NULL);
+	token = nextToken;
+	while (*nextToken != '\0')
+	{
+		isDelimiter = 0;
+		extension(nextToken, delim, &isDelimiter);
+		if (isDelimiter)
 		{
+			*nextToken = '\0', nextToken++;
 			break;
 		}
+		nextToken++;
 	}
-	i++;
-	while (commands[i] != NULL)
+	return (token);
+}
+
+
+/**
+ * getenv_custom - gets environment variables
+ * @name: name of the variable
+ *
+ * Return: NULL upone failure, else pointer to the value of the
+ * environment variable.
+ **/
+
+char *getenv_custom(const char *name)
+{
+	size_t name_length = 0;
+	int match;
+	char **env;
+	size_t i;
+
+	if (name == NULL || *name == '\0')
 	{
-		if (commands[i] != NULL)
+		return (NULL);
+	}
+	while (name[name_length] != '\0')
+		name_length++;
+	for (env = environ; *env != NULL; env++)
+	{
+		match = 1;
+		for (i = 0; i < name_length; i++)
 		{
-			free_str(commands[i]);
+			if ((*env)[i] != name[i])
+			{
+				match = 0;
+				break;
+			}
 		}
-		i++;
+		if (match && (*env)[name_length] == '=')
+		{
+			return (&(*env)[name_length + 1]);
+		}
 	}
-
-	if (commands != NULL)
-	{
-		free_sarray(commands);
-	}
-
-	return (0);
+	return (NULL);
 }
