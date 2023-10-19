@@ -3,10 +3,10 @@
 #define ARRAY_SIZE 128
 
 /**
- * tokenize - Split a line into tokens based on the specified mode.
+ * tokenize -Split a line into tokens based on the specified mode.
  * @line: The line to be tokenized.
  * @mode: the mode of tokenization ie 1 for normal, 2 for special
- * characters.
+ * characters
  *
  * Return: A dynamically allocated array of strings containing the tokens,
  * or NULL if an error occured.
