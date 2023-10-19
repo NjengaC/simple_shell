@@ -47,9 +47,9 @@ int process(SHELL *shell)
 }
 
 /**
- *Fork - performs the executio of the command
- *@input: the path of the executable
- *@shell: the mai struct
+ *Fork - performs the executio of the command.
+ *@input: the path of the executable.
+ *@shell: the mai struct.
  */
 
 void Fork(char *input, SHELL *shell)
