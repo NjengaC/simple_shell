@@ -2,10 +2,10 @@
 
 
 /**
- * handle_sigint - Function that handles CTRL C.
- * @signum: It represents the single number that triggers the signal.
+ * handle_sigint - Function that handles CTRL C
+ * @signum:It represents the single number that triggers the signal.
  *
- * Return: void.
+ * Return: void
  */
 
 void handle_sigint(int signum __attribute__((unused)))
