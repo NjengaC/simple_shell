@@ -29,7 +29,7 @@ int Atoi(const char *nptr)
 	return (sign * result);
 }
 /**
- * Strlen - function that counts the number of characters in a given string.
+ * Strlen - function thats counts the number of characters in a given string.
  * @input: Pointer to the string whose characters are to be counted.
  *
  * Return: The number of character counted in the string.
