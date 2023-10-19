@@ -46,7 +46,7 @@ char *Itoa(int n)
 /**
  *Strdup - dublicates a string
  *@s: the string to be dublictated
- *Return: a dublicated string
+ *Return: a duplicated string
  */
 
 char *Strdup(const char *s)
