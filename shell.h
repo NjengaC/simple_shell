@@ -31,10 +31,10 @@ extern char **environ;
  * input.
  * @pid: An integer representing the process ID of the current process.
  * @status: An integer representing the exit status of the last executed
- * command.
- * @_environ: An array of strings.
+ * command
+ * @_environ: An array of strings
  * @loop_count: An integer representing the number of times the shell has
- * executed its main loop.
+ * executed its main loop
  */
 
 typedef struct SHELL
