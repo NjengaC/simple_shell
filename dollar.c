@@ -46,8 +46,8 @@ int source(SHELL *shell, char *line)
 /**
  *shuffle - swaps one of the logcal operators for non printables and back
  *@line: the input
- *@mode: 1 for swaping to non printables and 2 for the undo
- *Return: nothing
+ *@mode: 1 for swaping to non printables and 2 for the undo.
+ *Return: nothing.
  */
 
 void shuffle(char *line, int mode)
