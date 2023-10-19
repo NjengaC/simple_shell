@@ -5,10 +5,10 @@
 /**
  * Realloc - function that reallocates memory  using malloc.
  * @ptr: Pointer to the memory to be reduced.
- * @old_size: The old size of the memory to be changed.
- * @size: the new size to change to.
+ * @old_size: The old size of the memory to be changed
+ * @size:the new size to change to.
  *
- * Return: void.
+ * Return: void .
  */
 
 void *Realloc(void *ptr, size_t old_size, size_t size)
