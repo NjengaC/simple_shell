@@ -98,10 +98,10 @@ char *Which(char *input)
 
 /**
  * Access - Check if a command is accessible and executable.
- * @input: The command to check.
- * @shell: Pointer to the shell data structure.
+ * @input: The command to check..
+ * @shell: Pointer to the shell data structure
  *
- * Return: ) on success, -1 if the command is not accessible.
+ * Return: ) on success, -1 if the command is not accesible
  */
 
 int Access(char *input, SHELL *shell)
